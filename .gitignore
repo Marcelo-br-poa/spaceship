@@ -1,0 +1,39 @@
+# Directorios y archivos específicos de IDE
+/.idea/
+/*.iml
+/.vscode/
+/*.code-workspace
+
+# Directorios de compilación
+/target/
+/bin/
+/out/
+
+# Archivos de configuración específicos del sistema operativo
+.DS_Store
+Thumbs.db
+
+# Archivos de registro
+*.log
+
+# Dependencias descargadas por Maven y Gradle
+/.mvn/
+/mvnw
+/mvnw.cmd
+/.gradle/
+/build/
+
+# Configuraciones del entorno
+.env
+*.env
+
+# Archivos de configuración específicos de IDE (Eclipse, IntelliJ, etc.)
+/.settings/
+/.project
+.classpath
+
+# Archivos generados por el sistema de control de versiones
+.git/
+.svn/
+.idea/
+HELP.md
