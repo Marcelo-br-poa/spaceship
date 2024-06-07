@@ -7,7 +7,11 @@ import com.w2m.spaceship.repository.SpaceshipRepository;
 import com.w2m.spaceship.service.SpaceshipService;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.mapstruct.factory.Mappers;
+import org.springframework.cache.CacheManager;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.data.domain.Example;
 import org.springframework.data.domain.ExampleMatcher;
@@ -19,16 +23,20 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 import java.util.Optional;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class SpaceshipServiceImpl implements SpaceshipService {
 
     private static final String ID_NULL = "ID must not be null.";
     private static final String NOT_FOUND_ID = "Spaceship not found with ID: %d";
-    private static final String  NAME_LENGTH_SHORT = "Spaceship name must have at least 3 characters.";
     private static final String  NAME_EXISTS = "Another spaceship with the same name already exists.";
+    private static final String  LOG_CHECK_CACHE = "Retrieving the data '{}' for the cache";
+    private static final String  CACHE_BY_ID = "spaceships";
+    private static final String  CACHE_BY_NAME = "spaceshipsByName";
 
 
+    private final CacheManager cacheManager;
 
     private final SpaceshipRepository repository;
     private final SpaceshipMapper mapper = Mappers.getMapper(SpaceshipMapper.class);
@@ -42,6 +50,7 @@ public class SpaceshipServiceImpl implements SpaceshipService {
 
     @Override
     @Transactional(readOnly = true)
+    @Cacheable(value = CACHE_BY_ID, key = "#id")
     public Optional<SpaceshipDTO> findById(Long id) {
         if (id == null) {
             throw new IllegalArgumentException(ID_NULL);
@@ -52,17 +61,16 @@ public class SpaceshipServiceImpl implements SpaceshipService {
             throw new EntityNotFoundException(String.format(NOT_FOUND_ID, id));
         }
 
+        log.info(LOG_CHECK_CACHE, id);
+
         return repository.findById(id)
                 .map(mapper::toDTO);
     }
 
     @Override
     @Transactional(readOnly = true)
+    @Cacheable(value = CACHE_BY_NAME, key = "#name")
     public List<SpaceshipDTO> findByNameContaining(String name) {
-
-        if (name.length() < 3) {
-            throw new IllegalArgumentException(NAME_LENGTH_SHORT);
-        }
 
         var matcher = ExampleMatcher.matching()
                 .withIgnoreCase()
@@ -70,6 +78,9 @@ public class SpaceshipServiceImpl implements SpaceshipService {
         var sapceship = new Spaceship();
         sapceship.setName(name);
         Example<Spaceship> exampleQuery = Example.of(sapceship, matcher);
+
+        log.info(LOG_CHECK_CACHE, name);
+
         return repository.findAll(exampleQuery)
                 .stream()
                 .map(mapper::toDTO)
@@ -78,11 +89,8 @@ public class SpaceshipServiceImpl implements SpaceshipService {
 
     @Override
     @Transactional
+    @CacheEvict(value = {CACHE_BY_ID, CACHE_BY_NAME}, allEntries = true)
     public SpaceshipDTO save(SpaceshipDTO spaceshipDTO) {
-
-        if (spaceshipDTO.name().length() < 3) {
-            throw new IllegalArgumentException(NAME_LENGTH_SHORT);
-        }
 
         var existingSpaceship = repository.findByNameContainingIgnoreCase(spaceshipDTO.name())
                 .stream()
@@ -97,11 +105,8 @@ public class SpaceshipServiceImpl implements SpaceshipService {
 
     @Override
     @Transactional
+    @CacheEvict(value = CACHE_BY_ID, key = "#spaceshipDTO.id")
     public SpaceshipDTO update(SpaceshipDTO spaceshipDTO) {
-
-        if (spaceshipDTO.name().length() < 3) {
-            throw new IllegalArgumentException(NAME_LENGTH_SHORT);
-        }
 
         var existingSpaceshipOptional = repository.findById(spaceshipDTO.id());
         var existingSpaceship = existingSpaceshipOptional.orElseThrow(() -> new EntityNotFoundException(String.format(NOT_FOUND_ID, spaceshipDTO.id())));
@@ -125,6 +130,7 @@ public class SpaceshipServiceImpl implements SpaceshipService {
         if (id == null) {
             throw new IllegalArgumentException(ID_NULL);
         }
+
 
         boolean exists = repository.existsById(id);
         if (!exists) {

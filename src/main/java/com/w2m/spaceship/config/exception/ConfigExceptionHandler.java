@@ -1,4 +1,4 @@
-package com.w2m.spaceship.exception;
+package com.w2m.spaceship.config.exception;
 
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.dao.DuplicateKeyException;
