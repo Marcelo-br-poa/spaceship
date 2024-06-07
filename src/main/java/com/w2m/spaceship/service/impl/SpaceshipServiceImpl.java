@@ -100,9 +100,12 @@ public class SpaceshipServiceImpl implements SpaceshipService {
             throw new DuplicateKeyException(NAME_EXISTS);
         }
         var spacecraft = mapper.toEntity(spaceshipDTO);
-        var saveNave = mapper.toDTO(repository.save(spacecraft));
-        String messageRabbit = String.format("Saved the Sapaceship: %s", saveNave.name());
-        rabbitService.sendMessageRabbit(messageRabbit);
+        var saveSpaceship = repository.save(spacecraft);
+        var saveNave = mapper.toDTO(saveSpaceship);
+        if(saveNave != null) {
+            String messageRabbit = String.format("Saved the Sapaceship: %s", saveNave.name());
+            rabbitService.sendMessageRabbit(messageRabbit);
+        }
         return saveNave;
     }
 
