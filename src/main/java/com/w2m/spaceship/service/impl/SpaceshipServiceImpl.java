@@ -4,12 +4,12 @@ import com.w2m.spaceship.domain.Spaceship;
 import com.w2m.spaceship.dto.SpaceshipDTO;
 import com.w2m.spaceship.mapper.SpaceshipMapper;
 import com.w2m.spaceship.repository.SpaceshipRepository;
+import com.w2m.spaceship.service.RabbitService;
 import com.w2m.spaceship.service.SpaceshipService;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.mapstruct.factory.Mappers;
-import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.dao.DuplicateKeyException;
@@ -36,7 +36,7 @@ public class SpaceshipServiceImpl implements SpaceshipService {
     private static final String  CACHE_BY_NAME = "spaceshipsByName";
 
 
-    private final CacheManager cacheManager;
+    private final RabbitService rabbitService;
 
     private final SpaceshipRepository repository;
     private final SpaceshipMapper mapper = Mappers.getMapper(SpaceshipMapper.class);
@@ -100,7 +100,10 @@ public class SpaceshipServiceImpl implements SpaceshipService {
             throw new DuplicateKeyException(NAME_EXISTS);
         }
         var spacecraft = mapper.toEntity(spaceshipDTO);
-        return mapper.toDTO(repository.save(spacecraft));
+        var saveNave = mapper.toDTO(repository.save(spacecraft));
+        String messageRabbit = String.format("Saved the Sapaceship: %s", saveNave.name());
+        rabbitService.sendMessageRabbit(messageRabbit);
+        return saveNave;
     }
 
     @Override
