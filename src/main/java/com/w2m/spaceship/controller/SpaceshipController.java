@@ -1,7 +1,6 @@
 package com.w2m.spaceship.controller;
 
 import com.w2m.spaceship.dto.SpaceshipDTO;
-import com.w2m.spaceship.service.RabbitService;
 import com.w2m.spaceship.service.SpaceshipService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -21,12 +20,11 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/spaceships")
+@RequestMapping("/spaceships")
 @RequiredArgsConstructor
 public class SpaceshipController {
 
     private final SpaceshipService service;
-    private final RabbitService rabbitService;
 
     @GetMapping
     public ResponseEntity<Page<SpaceshipDTO>> getAllSpaceships(Pageable pageable) {
@@ -64,12 +62,6 @@ public class SpaceshipController {
     public ResponseEntity<Void> deleteSpaceship(@PathVariable Long id) {
         service.deleteById(id);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
-    }
-
-    @PostMapping("/message")
-    public ResponseEntity<String> sendMessageRabbit(@RequestBody String message) {
-        rabbitService.sendMessageRabbit(message);
-        return new ResponseEntity<>("Message sent successfully", HttpStatus.OK);
     }
 
 }

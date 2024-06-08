@@ -111,7 +111,7 @@ public class SpaceshipServiceImpl implements SpaceshipService {
 
     @Override
     @Transactional
-    @CacheEvict(value = CACHE_BY_ID, key = "#spaceshipDTO.id")
+    @CacheEvict(value = {CACHE_BY_ID, CACHE_BY_NAME}, allEntries = true)
     public SpaceshipDTO update(SpaceshipDTO spaceshipDTO) {
 
         var existingSpaceshipOptional = repository.findById(spaceshipDTO.id());
@@ -131,6 +131,7 @@ public class SpaceshipServiceImpl implements SpaceshipService {
 
     @Override
     @Transactional
+    @CacheEvict(value = {CACHE_BY_ID, CACHE_BY_NAME}, allEntries = true)
     public void deleteById(Long id) {
 
         if (id == null) {

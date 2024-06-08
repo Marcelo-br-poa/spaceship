@@ -1,7 +1,6 @@
 package com.w2m.spaceship.controller;
 
 import com.w2m.spaceship.dto.SpaceshipDTO;
-import com.w2m.spaceship.service.RabbitService;
 import com.w2m.spaceship.service.SpaceshipService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -30,9 +29,6 @@ class SpaceshipControllerTest {
 
     @Mock
     private SpaceshipService spaceshipService;
-
-    @Mock
-    private RabbitService rabbitService;
 
     @InjectMocks
     private SpaceshipController spaceshipController;
@@ -125,20 +121,5 @@ class SpaceshipControllerTest {
         assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
         verify(spaceshipService, times(1)).deleteById(id);
     }
-
-    @Test
-    void testSendMessageRabbit() {
-        String message = "Test message";
-
-        doNothing().when(rabbitService).sendMessageRabbit(message);
-
-        ResponseEntity<String> response = spaceshipController.sendMessageRabbit(message);
-
-        assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertEquals("Message sent successfully", response.getBody());
-        verify(rabbitService, times(1)).sendMessageRabbit(message);
-    }
-
-
 
 }
