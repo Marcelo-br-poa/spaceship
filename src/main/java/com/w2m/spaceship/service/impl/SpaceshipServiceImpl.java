@@ -4,7 +4,6 @@ import com.w2m.spaceship.domain.Spaceship;
 import com.w2m.spaceship.dto.SpaceshipDTO;
 import com.w2m.spaceship.mapper.SpaceshipMapper;
 import com.w2m.spaceship.repository.SpaceshipRepository;
-import com.w2m.spaceship.service.RabbitService;
 import com.w2m.spaceship.service.SpaceshipService;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
@@ -21,6 +20,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 @Slf4j
@@ -35,8 +35,6 @@ public class SpaceshipServiceImpl implements SpaceshipService {
     private static final String  CACHE_BY_ID = "spaceships";
     private static final String  CACHE_BY_NAME = "spaceshipsByName";
 
-
-    private final RabbitService rabbitService;
 
     private final SpaceshipRepository repository;
     private final SpaceshipMapper mapper = Mappers.getMapper(SpaceshipMapper.class);
@@ -53,18 +51,17 @@ public class SpaceshipServiceImpl implements SpaceshipService {
     @Cacheable(value = CACHE_BY_ID, key = "#id")
     public Optional<SpaceshipDTO> findById(Long id) {
         if (id == null) {
-            throw new IllegalArgumentException(ID_NULL);
-        }
-
-        boolean exists = repository.existsById(id);
-        if (!exists) {
-            throw new EntityNotFoundException(String.format(NOT_FOUND_ID, id));
+            throw new IllegalArgumentException("The provided ID is null.");
         }
 
         log.info(LOG_CHECK_CACHE, id);
 
         return repository.findById(id)
-                .map(mapper::toDTO);
+                .map(mapper::toDTO)
+                .or(() -> {
+                    log.error(NOT_FOUND_ID, id);
+                    throw new EntityNotFoundException(String.format(NOT_FOUND_ID, id));
+                });
     }
 
     @Override
@@ -72,15 +69,14 @@ public class SpaceshipServiceImpl implements SpaceshipService {
     @Cacheable(value = CACHE_BY_NAME, key = "#name")
     public List<SpaceshipDTO> findByNameContaining(String name) {
 
+        Objects.requireNonNull(name, "The provided name is null.");
         var matcher = ExampleMatcher.matching()
                 .withIgnoreCase()
                 .withStringMatcher(ExampleMatcher.StringMatcher.CONTAINING);
-        var sapceship = new Spaceship();
-        sapceship.setName(name);
-        Example<Spaceship> exampleQuery = Example.of(sapceship, matcher);
-
+        var spaceship = new Spaceship();
+        spaceship.setName(name);
+        Example<Spaceship> exampleQuery = Example.of(spaceship, matcher);
         log.info(LOG_CHECK_CACHE, name);
-
         return repository.findAll(exampleQuery)
                 .stream()
                 .map(mapper::toDTO)
@@ -92,21 +88,14 @@ public class SpaceshipServiceImpl implements SpaceshipService {
     @CacheEvict(value = {CACHE_BY_ID, CACHE_BY_NAME}, allEntries = true)
     public SpaceshipDTO save(SpaceshipDTO spaceshipDTO) {
 
-        var existingSpaceship = repository.findByNameContainingIgnoreCase(spaceshipDTO.name())
-                .stream()
-                .filter(sc -> sc.getName().equalsIgnoreCase(spaceshipDTO.name()))
-                .findFirst();
-        if (existingSpaceship.isPresent()) {
+        Objects.requireNonNull(spaceshipDTO, "The provided spaceshipDTO is null.");
+        var existingSpaceships = repository.findByNameContainingIgnoreCase(spaceshipDTO.name());
+        if (!existingSpaceships.isEmpty()) {
             throw new DuplicateKeyException(NAME_EXISTS);
         }
         var spacecraft = mapper.toEntity(spaceshipDTO);
-        var saveSpaceship = repository.save(spacecraft);
-        var saveNave = mapper.toDTO(saveSpaceship);
-        if(saveNave != null) {
-            String messageRabbit = String.format("Saved the Sapaceship: %s", saveNave.name());
-            rabbitService.sendMessageRabbit(messageRabbit);
-        }
-        return saveNave;
+        var savedSpaceship = repository.save(spacecraft);
+        return mapper.toDTO(savedSpaceship);
     }
 
     @Override
@@ -114,19 +103,21 @@ public class SpaceshipServiceImpl implements SpaceshipService {
     @CacheEvict(value = {CACHE_BY_ID, CACHE_BY_NAME}, allEntries = true)
     public SpaceshipDTO update(SpaceshipDTO spaceshipDTO) {
 
-        var existingSpaceshipOptional = repository.findById(spaceshipDTO.id());
-        var existingSpaceship = existingSpaceshipOptional.orElseThrow(() -> new EntityNotFoundException(String.format(NOT_FOUND_ID, spaceshipDTO.id())));
+        Objects.requireNonNull(spaceshipDTO, "The provided spaceshipDTO is null.");
 
-        var anotherSpaceshipWithSameName = repository.findByNameAndIdNot(spaceshipDTO.name(), spaceshipDTO.id());
-        if (anotherSpaceshipWithSameName.isPresent()) {
-            throw new DuplicateKeyException(NAME_EXISTS);
-        }
+        var existingSpaceship = repository.findById(spaceshipDTO.id())
+                .orElseThrow(() -> new EntityNotFoundException(String.format(NOT_FOUND_ID, spaceshipDTO.id())));
+
+        repository.findByNameAndIdNot(spaceshipDTO.name(), spaceshipDTO.id())
+                .ifPresent(anotherSpaceship -> {
+                    throw new DuplicateKeyException(NAME_EXISTS);
+                });
 
         existingSpaceship.setName(spaceshipDTO.name());
         existingSpaceship.setModel(spaceshipDTO.model());
         existingSpaceship.setSeries(spaceshipDTO.series());
 
-        return mapper.toDTO(repository.save(existingSpaceship));
+        return mapper.toDTO(existingSpaceship);
     }
 
     @Override
@@ -137,7 +128,6 @@ public class SpaceshipServiceImpl implements SpaceshipService {
         if (id == null) {
             throw new IllegalArgumentException(ID_NULL);
         }
-
 
         boolean exists = repository.existsById(id);
         if (!exists) {

@@ -28,40 +28,37 @@ public class SpaceshipController {
 
     @GetMapping
     public ResponseEntity<Page<SpaceshipDTO>> getAllSpaceships(Pageable pageable) {
-        var spaceshipDTO = service.findAll(pageable);
-        return new ResponseEntity<>(spaceshipDTO, HttpStatus.OK);
+        return ResponseEntity.ok(service.findAll(pageable));
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<SpaceshipDTO> getSpaceshipById(@PathVariable Long id) {
-        var spaceshipDTO = service.findById(id);
-        return spaceshipDTO.map(value -> new ResponseEntity<>(value, HttpStatus.OK))
-                .orElseGet(() -> new ResponseEntity<>(HttpStatus.NOT_FOUND));
+        return service.findById(id)
+                .map(ResponseEntity::ok)
+                .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
     @GetMapping("/search")
     public ResponseEntity<List<SpaceshipDTO>> getSpaceshipByName(@RequestParam String name) {
-        var spaceshipDTO = service.findByNameContaining(name);
-        return new ResponseEntity<>(spaceshipDTO, HttpStatus.OK);
+        return ResponseEntity.ok(service.findByNameContaining(name));
     }
 
     @PostMapping
     public ResponseEntity<SpaceshipDTO> createSpaceship(@RequestBody SpaceshipDTO dto) {
-        var createSpaceshipDTO = service.save(dto);
-        return new ResponseEntity<>(createSpaceshipDTO, HttpStatus.CREATED);
+        var createdSpaceshipDTO = service.save(dto);
+        return ResponseEntity.status(HttpStatus.CREATED).body(createdSpaceshipDTO);
     }
 
     @PutMapping("/{id}")
     public ResponseEntity<SpaceshipDTO> updateSpaceship(@PathVariable Long id, @RequestBody SpaceshipDTO dto) {
-        dto = new SpaceshipDTO(id, dto.name(), dto.model(), dto.series());
-        var updatedSpacecraft = service.update(dto);
-        return new ResponseEntity<>(updatedSpacecraft, HttpStatus.OK);
+        var updatedSpaceshipDTO = service.update(new SpaceshipDTO(id, dto.name(), dto.model(), dto.series()));
+        return ResponseEntity.ok(updatedSpaceshipDTO);
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteSpaceship(@PathVariable Long id) {
         service.deleteById(id);
-        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+        return ResponseEntity.noContent().build();
     }
 
 }
