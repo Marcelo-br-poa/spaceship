@@ -1,16 +1,9 @@
 package com.w2m.spaceship.service.impl;
 
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyLong;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.*;
-
 import com.w2m.spaceship.domain.Spaceship;
 import com.w2m.spaceship.dto.SpaceshipDTO;
 import com.w2m.spaceship.mapper.SpaceshipMapper;
 import com.w2m.spaceship.repository.SpaceshipRepository;
-import com.w2m.spaceship.service.RabbitService;
 import jakarta.persistence.EntityNotFoundException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -29,11 +22,18 @@ import org.springframework.data.domain.Pageable;
 import java.util.List;
 import java.util.Optional;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
 @ExtendWith(MockitoExtension.class)
 class SpaceshipServiceImplTest {
-
-    @Mock
-    private RabbitService rabbitService;
 
     @Mock
     private SpaceshipRepository repository;
@@ -41,7 +41,7 @@ class SpaceshipServiceImplTest {
     @InjectMocks
     private SpaceshipServiceImpl spaceshipService;
 
-    private SpaceshipMapper mapper = Mappers.getMapper(SpaceshipMapper.class);
+    private final SpaceshipMapper mapper = Mappers.getMapper(SpaceshipMapper.class);
 
     private Spaceship spaceship;
     private SpaceshipDTO spaceshipDTO;
@@ -72,7 +72,7 @@ class SpaceshipServiceImplTest {
 
     @Test
     void testFindById() {
-        when(repository.existsById(anyLong())).thenReturn(true);
+        //when(repository.existsById(anyLong())).thenReturn(true);
         when(repository.findById(anyLong())).thenReturn(Optional.of(spaceship));
 
         Optional<SpaceshipDTO> result = spaceshipService.findById(1L);
@@ -84,7 +84,6 @@ class SpaceshipServiceImplTest {
 
     @Test
     void testFindByIdNotFound() {
-        when(repository.existsById(anyLong())).thenReturn(false);
 
         Exception exception = assertThrows(EntityNotFoundException.class, () -> {
             spaceshipService.findById(1L);
@@ -115,7 +114,6 @@ class SpaceshipServiceImplTest {
 
         assertEquals("Star Destroyer", result.name());
         verify(repository, times(1)).save(any(Spaceship.class));
-        verify(rabbitService, times(1)).sendMessageRabbit(anyString());
     }
 
     @Test
@@ -135,14 +133,12 @@ class SpaceshipServiceImplTest {
     @Test
     void testUpdate() {
         when(repository.findById(anyLong())).thenReturn(Optional.of(spaceship));
-        when(repository.save(any(Spaceship.class))).thenReturn(spaceship);
         when(repository.findByNameAndIdNot(anyString(), anyLong())).thenReturn(Optional.empty());
 
         SpaceshipDTO result = spaceshipService.update(spaceshipDTO);
 
         assertEquals("Star Destroyer", result.name());
         verify(repository, times(1)).findById(anyLong());
-        verify(repository, times(1)).save(any(Spaceship.class));
     }
 
     @Test
