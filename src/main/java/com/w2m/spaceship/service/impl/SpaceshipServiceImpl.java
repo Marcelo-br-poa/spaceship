@@ -34,6 +34,7 @@ public class SpaceshipServiceImpl implements SpaceshipService {
     private static final String  LOG_CHECK_CACHE = "Retrieving the data '{}' for the cache";
     private static final String  CACHE_BY_ID = "spaceships";
     private static final String  CACHE_BY_NAME = "spaceshipsByName";
+    private static final String  NAME_IS_NULL = "The provided name is null.";
 
 
     private final SpaceshipRepository repository;
@@ -51,7 +52,7 @@ public class SpaceshipServiceImpl implements SpaceshipService {
     @Cacheable(value = CACHE_BY_ID, key = "#id")
     public Optional<SpaceshipDTO> findById(Long id) {
         if (id == null) {
-            throw new IllegalArgumentException("The provided ID is null.");
+            throw new IllegalArgumentException(ID_NULL);
         }
 
         log.info(LOG_CHECK_CACHE, id);
@@ -59,7 +60,6 @@ public class SpaceshipServiceImpl implements SpaceshipService {
         return repository.findById(id)
                 .map(mapper::toDTO)
                 .or(() -> {
-                    log.error(NOT_FOUND_ID, id);
                     throw new EntityNotFoundException(String.format(NOT_FOUND_ID, id));
                 });
     }
@@ -69,7 +69,7 @@ public class SpaceshipServiceImpl implements SpaceshipService {
     @Cacheable(value = CACHE_BY_NAME, key = "#name")
     public List<SpaceshipDTO> findByNameContaining(String name) {
 
-        Objects.requireNonNull(name, "The provided name is null.");
+        Objects.requireNonNull(name,NAME_IS_NULL);
         var matcher = ExampleMatcher.matching()
                 .withIgnoreCase()
                 .withStringMatcher(ExampleMatcher.StringMatcher.CONTAINING);
@@ -88,7 +88,7 @@ public class SpaceshipServiceImpl implements SpaceshipService {
     @CacheEvict(value = {CACHE_BY_ID, CACHE_BY_NAME}, allEntries = true)
     public SpaceshipDTO save(SpaceshipDTO spaceshipDTO) {
 
-        Objects.requireNonNull(spaceshipDTO, "The provided spaceshipDTO is null.");
+        Objects.requireNonNull(spaceshipDTO, NAME_IS_NULL);
         var existingSpaceships = repository.findByNameContainingIgnoreCase(spaceshipDTO.name());
         if (!existingSpaceships.isEmpty()) {
             throw new DuplicateKeyException(NAME_EXISTS);
@@ -103,7 +103,7 @@ public class SpaceshipServiceImpl implements SpaceshipService {
     @CacheEvict(value = {CACHE_BY_ID, CACHE_BY_NAME}, allEntries = true)
     public SpaceshipDTO update(SpaceshipDTO spaceshipDTO) {
 
-        Objects.requireNonNull(spaceshipDTO, "The provided spaceshipDTO is null.");
+        Objects.requireNonNull(spaceshipDTO, NAME_IS_NULL);
 
         var existingSpaceship = repository.findById(spaceshipDTO.id())
                 .orElseThrow(() -> new EntityNotFoundException(String.format(NOT_FOUND_ID, spaceshipDTO.id())));
