@@ -36,4 +36,4 @@
     - Usuario: guest / Contraseña: guest
 - Hay un endpoint específico para la mensajería.
 
-
+# Mantenimiento de la base de datos: Flyway
