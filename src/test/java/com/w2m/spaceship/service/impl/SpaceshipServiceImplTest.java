@@ -41,8 +41,6 @@ class SpaceshipServiceImplTest {
     @InjectMocks
     private SpaceshipServiceImpl spaceshipService;
 
-    private final SpaceshipMapper mapper = Mappers.getMapper(SpaceshipMapper.class);
-
     private Spaceship spaceship;
     private SpaceshipDTO spaceshipDTO;
 
