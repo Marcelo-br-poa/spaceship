@@ -27,13 +27,14 @@
 - mvn clean verify
 - Está configurado para aceptar un mínimo de 80% de cobertura.
 
-# Consumer/Producer:
-- RabbitMQ.
+# Consumer/Producer: RabbitMQ.
 - Pasos para levantar RabbitMQ en el Docker:
     - docker run -it --rm --name rabbitmq -p 5672:5672 -p 15672:15672 rabbitmq:3.13-management
 - Para acceder a la interfaz de administración:
     - http://localhost:15672
     - Usuario: guest / Contraseña: guest
 - Hay un endpoint específico para la mensajería.
+
+# Mantenimiento de la base de datos: Flyway
 
 
