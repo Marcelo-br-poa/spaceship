@@ -2,13 +2,12 @@ package com.w2m.spaceship.service.impl;
 
 import com.w2m.spaceship.domain.Spaceship;
 import com.w2m.spaceship.dto.SpaceshipDTO;
-import com.w2m.spaceship.mapper.SpaceshipMapper;
+import com.w2m.spaceship.dto.SpaceshipRequestDTO;
 import com.w2m.spaceship.repository.SpaceshipRepository;
 import jakarta.persistence.EntityNotFoundException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mapstruct.factory.Mappers;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -44,6 +43,7 @@ class SpaceshipServiceImplTest {
     private Spaceship spaceship;
     private SpaceshipDTO spaceshipDTO;
 
+    private SpaceshipRequestDTO spaceshipRequestDTO;
     @BeforeEach
     void setUp() {
         spaceship = new Spaceship();
@@ -53,6 +53,7 @@ class SpaceshipServiceImplTest {
         spaceship.setSeries("Destroyers");
 
         spaceshipDTO = new SpaceshipDTO(1L, "Star Destroyer", "Imperial-class Star Destroyer", "Destroyers");
+        spaceshipRequestDTO = new SpaceshipRequestDTO("Star Destroyer", "Imperial-class Star Destroyer", "Destroyers");
     }
 
     @Test
@@ -108,7 +109,7 @@ class SpaceshipServiceImplTest {
         when(repository.findByNameContainingIgnoreCase(anyString())).thenReturn(List.of());
         when(repository.save(any(Spaceship.class))).thenReturn(spaceship);
 
-        SpaceshipDTO result = spaceshipService.save(spaceshipDTO);
+        var result = spaceshipService.save(spaceshipRequestDTO);
 
         assertEquals("Star Destroyer", result.name());
         verify(repository, times(1)).save(any(Spaceship.class));
@@ -119,7 +120,7 @@ class SpaceshipServiceImplTest {
         when(repository.findByNameContainingIgnoreCase(anyString())).thenReturn(List.of(spaceship));
 
         Exception exception = assertThrows(DuplicateKeyException.class, () -> {
-            spaceshipService.save(spaceshipDTO);
+            spaceshipService.save(spaceshipRequestDTO);
         });
 
         String expectedMessage = "Another spaceship with the same name already exists.";
@@ -133,7 +134,7 @@ class SpaceshipServiceImplTest {
         when(repository.findById(anyLong())).thenReturn(Optional.of(spaceship));
         when(repository.findByNameAndIdNot(anyString(), anyLong())).thenReturn(Optional.empty());
 
-        SpaceshipDTO result = spaceshipService.update(spaceshipDTO);
+        var result = spaceshipService.update(1L, spaceshipRequestDTO);
 
         assertEquals("Star Destroyer", result.name());
         verify(repository, times(1)).findById(anyLong());
