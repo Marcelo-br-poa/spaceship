@@ -1,12 +1,10 @@
 # spaceship
 
 # Iniciar la aplicación:
-- Levantar el servicio de RabbitMQ antes.
-  - docker run -it --rm --name rabbitmq -p 5672:5672 -p 15672:15672 rabbitmq:3.13-management
-- Para levantar la aplicación con Docker:
-  - docker build -t spaceship .
-  - docker run -p 8080:8080 spaceship
-
+- Ejecuta los comandos de abajo en secuencia:
+  - docker-compose build
+  - docker-compose up
+- Este proceso levanta el sevicio de RabbitMQ primero y despues la aplicacion.
 
 # Autenticación:
 - Usuario: admin
@@ -36,5 +34,3 @@
 - Hay un endpoint específico para la mensajería.
 
 # Mantenimiento de la base de datos: Flyway
-
-
