@@ -51,7 +51,7 @@ public class SpaceshipServiceImpl implements SpaceshipService {
     @Transactional(readOnly = true)
     @Cacheable(value = CACHE_BY_ID, key = "#id")
     public Optional<SpaceshipDTO> findById(Long id) {
-        Objects.requireNonNull(id, ID_NULL); // Reemplazar la verificación nula con Objects.requireNonNull
+        Objects.requireNonNull(id, ID_NULL);
         log.info(LOG_CHECK_CACHE, id);
 
         return Optional.of(repository.findById(id)
