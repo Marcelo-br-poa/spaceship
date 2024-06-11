@@ -1,6 +1,7 @@
 # spaceship
 
-# Iniciar la aplicación:
+# Iniciar la aplicación
+- Antes de ejecutar los comandos para levantar la aplicación debes abrir una terminal y ubicarla en la raíz del  proyecto.
 - Ejecuta los comandos de abajo en secuencia:
   - docker-compose build
   - docker-compose up
