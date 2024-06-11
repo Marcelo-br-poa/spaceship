@@ -2,6 +2,7 @@ package com.w2m.spaceship.service.impl;
 
 import com.w2m.spaceship.domain.Spaceship;
 import com.w2m.spaceship.dto.SpaceshipDTO;
+import com.w2m.spaceship.dto.SpaceshipRequestDTO;
 import com.w2m.spaceship.mapper.SpaceshipMapper;
 import com.w2m.spaceship.repository.SpaceshipRepository;
 import com.w2m.spaceship.service.SpaceshipService;
@@ -82,38 +83,38 @@ public class SpaceshipServiceImpl implements SpaceshipService {
     @Override
     @Transactional
     @CacheEvict(value = {CACHE_BY_ID, CACHE_BY_NAME}, allEntries = true)
-    public SpaceshipDTO save(SpaceshipDTO spaceshipDTO) {
+    public SpaceshipRequestDTO save(SpaceshipRequestDTO spaceshipRequestDTO) {
 
-        Objects.requireNonNull(spaceshipDTO, NAME_IS_NULL);
-        var existingSpaceships = repository.findByNameContainingIgnoreCase(spaceshipDTO.name());
+        Objects.requireNonNull(spaceshipRequestDTO, NAME_IS_NULL);
+        var existingSpaceships = repository.findByNameContainingIgnoreCase(spaceshipRequestDTO.name());
         if (!existingSpaceships.isEmpty()) {
             throw new DuplicateKeyException(NAME_EXISTS);
         }
-        var spacecraft = mapper.toEntity(spaceshipDTO);
+        var spacecraft = mapper.toRequestEntity(spaceshipRequestDTO);
         var savedSpaceship = repository.save(spacecraft);
-        return mapper.toDTO(savedSpaceship);
+        return mapper.toRequestDTO(savedSpaceship);
     }
 
     @Override
     @Transactional
     @CacheEvict(value = {CACHE_BY_ID, CACHE_BY_NAME}, allEntries = true)
-    public SpaceshipDTO update(SpaceshipDTO spaceshipDTO) {
+    public SpaceshipRequestDTO update(Long id, SpaceshipRequestDTO spaceshipRequestDTO) {
 
-        Objects.requireNonNull(spaceshipDTO, NAME_IS_NULL);
+        Objects.requireNonNull(spaceshipRequestDTO, NAME_IS_NULL);
 
-        var existingSpaceship = repository.findById(spaceshipDTO.id())
-                .orElseThrow(() -> new EntityNotFoundException(String.format(NOT_FOUND_ID, spaceshipDTO.id())));
+        var existingSpaceship = repository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException(String.format(NOT_FOUND_ID, id)));
 
-        repository.findByNameAndIdNot(spaceshipDTO.name(), spaceshipDTO.id())
+        repository.findByNameAndIdNot(spaceshipRequestDTO.name(), id)
                 .ifPresent(anotherSpaceship -> {
                     throw new DuplicateKeyException(NAME_EXISTS);
                 });
 
-        existingSpaceship.setName(spaceshipDTO.name());
-        existingSpaceship.setModel(spaceshipDTO.model());
-        existingSpaceship.setSeries(spaceshipDTO.series());
+        existingSpaceship.setName(spaceshipRequestDTO.name());
+        existingSpaceship.setModel(spaceshipRequestDTO.model());
+        existingSpaceship.setSeries(spaceshipRequestDTO.series());
 
-        return mapper.toDTO(existingSpaceship);
+        return mapper.toRequestDTO(existingSpaceship);
     }
 
     @Override

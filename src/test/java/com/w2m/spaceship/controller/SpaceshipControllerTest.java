@@ -1,6 +1,7 @@
 package com.w2m.spaceship.controller;
 
 import com.w2m.spaceship.dto.SpaceshipDTO;
+import com.w2m.spaceship.dto.SpaceshipRequestDTO;
 import com.w2m.spaceship.service.SpaceshipService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -84,12 +85,12 @@ class SpaceshipControllerTest {
 
     @Test
     void testCreateSpaceship() {
-        SpaceshipDTO spaceshipDTO = new SpaceshipDTO(null, "Falcon", "Model X", "Series 1");
-        SpaceshipDTO savedSpaceshipDTO = new SpaceshipDTO(1L, "Falcon", "Model X", "Series 1");
+        var spaceshipDTO = new SpaceshipRequestDTO( "Falcon", "Model X", "Series 1");
+        var savedSpaceshipDTO = new SpaceshipRequestDTO("Falcon", "Model X", "Series 1");
 
         when(spaceshipService.save(spaceshipDTO)).thenReturn(savedSpaceshipDTO);
 
-        ResponseEntity<SpaceshipDTO> response = spaceshipController.createSpaceship(spaceshipDTO);
+        ResponseEntity<SpaceshipRequestDTO> response = spaceshipController.createSpaceship(spaceshipDTO);
 
         assertEquals(HttpStatus.CREATED, response.getStatusCode());
         assertEquals(savedSpaceshipDTO, response.getBody());
@@ -99,15 +100,15 @@ class SpaceshipControllerTest {
     @Test
     void testUpdateSpaceship() {
         Long id = 1L;
-        SpaceshipDTO spaceshipDTO = new SpaceshipDTO(id, "Falcon", "Model X", "Series 1");
+        var spaceshipRequestDTO = new SpaceshipRequestDTO("Falcon", "Model X", "Series 1");
 
-        when(spaceshipService.update(spaceshipDTO)).thenReturn(spaceshipDTO);
+        when(spaceshipService.update(id, spaceshipRequestDTO)).thenReturn(spaceshipRequestDTO);
 
-        ResponseEntity<SpaceshipDTO> response = spaceshipController.updateSpaceship(id, spaceshipDTO);
+        ResponseEntity<SpaceshipRequestDTO> response = spaceshipController.updateSpaceship(id, spaceshipRequestDTO);
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertEquals(spaceshipDTO, response.getBody());
-        verify(spaceshipService, times(1)).update(spaceshipDTO);
+        assertEquals(spaceshipRequestDTO, response.getBody());
+        verify(spaceshipService, times(1)).update(id, spaceshipRequestDTO);
     }
 
     @Test

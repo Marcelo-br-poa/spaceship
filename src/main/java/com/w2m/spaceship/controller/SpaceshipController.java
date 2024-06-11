@@ -1,6 +1,7 @@
 package com.w2m.spaceship.controller;
 
 import com.w2m.spaceship.dto.SpaceshipDTO;
+import com.w2m.spaceship.dto.SpaceshipRequestDTO;
 import com.w2m.spaceship.service.SpaceshipService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -44,14 +45,14 @@ public class SpaceshipController {
     }
 
     @PostMapping
-    public ResponseEntity<SpaceshipDTO> createSpaceship(@RequestBody SpaceshipDTO dto) {
+    public ResponseEntity<SpaceshipRequestDTO> createSpaceship(@RequestBody SpaceshipRequestDTO dto) {
         var createdSpaceshipDTO = service.save(dto);
         return ResponseEntity.status(HttpStatus.CREATED).body(createdSpaceshipDTO);
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<SpaceshipDTO> updateSpaceship(@PathVariable Long id, @RequestBody SpaceshipDTO dto) {
-        var updatedSpaceshipDTO = service.update(new SpaceshipDTO(id, dto.name(), dto.model(), dto.series()));
+    public ResponseEntity<SpaceshipRequestDTO> updateSpaceship(@PathVariable Long id, @RequestBody SpaceshipRequestDTO dto) {
+        var updatedSpaceshipDTO = service.update(id, new SpaceshipRequestDTO(dto.name(), dto.model(), dto.series()));
         return ResponseEntity.ok(updatedSpaceshipDTO);
     }
 

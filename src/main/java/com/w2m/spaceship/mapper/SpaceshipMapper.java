@@ -2,6 +2,7 @@ package com.w2m.spaceship.mapper;
 
 import com.w2m.spaceship.domain.Spaceship;
 import com.w2m.spaceship.dto.SpaceshipDTO;
+import com.w2m.spaceship.dto.SpaceshipRequestDTO;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.factory.Mappers;
@@ -16,5 +17,9 @@ public interface SpaceshipMapper {
 
     @Mapping(target = "id", ignore = true)
     Spaceship toEntity(SpaceshipDTO spaceshipDTO);
+
+    Spaceship toRequestEntity(SpaceshipRequestDTO spaceshipRequestDTO);
+
+    SpaceshipRequestDTO toRequestDTO(Spaceship spaceship);
 
 }
