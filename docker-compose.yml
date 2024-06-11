@@ -1,0 +1,21 @@
+services:
+  rabbitmq:
+    image: rabbitmq:3.8.14
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    networks:
+      - spaceship_net
+
+  spring-boot-app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    networks:
+      - spaceship_net
+
+networks:
+  spaceship_net:
+    driver: bridge
