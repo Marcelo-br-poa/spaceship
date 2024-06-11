@@ -51,19 +51,15 @@ public class SpaceshipServiceImpl implements SpaceshipService {
     @Transactional(readOnly = true)
     @Cacheable(value = CACHE_BY_ID, key = "#id")
     public Optional<SpaceshipDTO> findById(Long id) {
-        if (id == null) {
-            throw new IllegalArgumentException(ID_NULL);
-        }
-
+        Objects.requireNonNull(id, ID_NULL); // Reemplazar la verificación nula con Objects.requireNonNull
         log.info(LOG_CHECK_CACHE, id);
 
-        return repository.findById(id)
+        return Optional.of(repository.findById(id)
                 .map(mapper::toDTO)
-                .or(() -> {
+                .orElseGet(() -> {
                     throw new EntityNotFoundException(String.format(NOT_FOUND_ID, id));
-                });
+                }));
     }
-
     @Override
     @Transactional(readOnly = true)
     @Cacheable(value = CACHE_BY_NAME, key = "#name")
