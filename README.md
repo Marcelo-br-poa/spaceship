@@ -3,6 +3,7 @@
 # Iniciar la aplicación
 - Antes de ejecutar los comandos para levantar la aplicación debes abrir una terminal y ubicarla en la raíz del  proyecto.
 - Ejecuta los comandos de abajo en secuencia:
+  - mvn package
   - docker-compose build
   - docker-compose up
 - Este proceso levanta el sevicio de RabbitMQ primero y despues la aplicacion.
